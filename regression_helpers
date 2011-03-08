@@ -20,6 +20,8 @@
 test_kill ()
 {
     killall -9 glusterfs glusterfsd 2>/dev/null 1>/dev/null;
+    umount -l $FUSE_MOUNT 2>/dev/null 1>/dev/null;
+    umount -l $NFS_MOUNT 2>/dev/null 1>/dev/null;
     rm -rf /etc/glusterd/vols/*;
     rm -rf /etc/glusterd/peers/*;
 }
@@ -74,6 +76,20 @@ start_glusterd ()
     $gluster_path;
 }
 
+mount_glusterfs ()
+{
+    local volname=$1;
+
+    $GLUSTERFSDIR/glusterfs --volfile-server=$(hostname) --volfile-id=$volname $FUSE_MOUNT;
+}
+
+mount_nfs ()
+{
+    local volname=$1;
+
+    mount $(hostname):$volname $NFS_MOUNT;
+}
+
 run_testcase ()
 {
     local id=;
@@ -85,8 +101,24 @@ run_testcase ()
 
     if [ $id ]; then
         global_bug_id=$id;
+	export FUSE_MOUNT=$EXPORT_DIR/$global_bug_id/fuse;
+	export NFS_MOUNT=$EXPORT_DIR/$global_bug_id/nfs;
+
         if [ -f ./dvm/$id/testcase ]; then
+            create_directory $FUSE_MOUNT;
+            create_directory $NFS_MOUNT;
+
             ./dvm/$id/testcase $GLUSTERD;
+            if [ $? -ne 0 ]; then
+                echo -n "$global_bug_id: "
+                not_ok;
+            else
+                echo -n "$global_bug_id: "
+                ok;
+            fi
+
+            test_kill;
+            test_cleanup;
         fi
         return 0;
     fi
@@ -94,8 +126,17 @@ run_testcase ()
     for i in $(ls dvm/ | grep "^[0-9]*$" | sort -n)
     do
         if [ -f ./dvm/$i/testcase ]; then
-            global_bug_id=$i;
             run_testcase $i;
         fi
     done
+}
+
+function ok ()
+{
+    echo "ok"
+}
+
+function not_ok ()
+{
+    echo "not ok"
 }

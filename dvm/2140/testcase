@@ -1,20 +1,9 @@
 #!/bin/bash
 
-source ./init
 source ./regression_helpers
 
-GLUSTERD_DIR=$(dirname $GLUSTERD);
-mkdir $EXPORT_DIR/$global_bug_id/;
+VOLNAME="abcdefg";
+$GLUSTERFSDIR/gluster volume delete $VOLNAME --mode=script | grep -i "exist" 2>/dev/null 1>/dev/null
+exit $?;
 
-$GLUSTERD_DIR/gluster volume delete abcdsdrgf --mode=script | grep -i "exist" 2>/dev/null 1>/dev/null
-if [ $? -ne 0 ]; then
-    echo -n "$global_bug_id: "
-    not_ok;
-else
-    echo -n "$global_bug_id: "
-    ok;
-fi
 
-test_kill;
-
-test_cleanup;

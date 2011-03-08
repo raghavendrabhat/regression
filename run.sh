@@ -24,7 +24,11 @@ _init ()
     	exit;
     }
 
-    source ./init
+    [ $1 == "show" ] && {
+        ls $PWD/dvm | sort -n;
+        exit;
+    }
+
     source ./regression_helpers
     export GLUSTERD=$1
     bug_id=;
@@ -32,6 +36,19 @@ _init ()
         bug_id=$2;
     fi
     export EXPORT_DIR="/regression/export";
+    export glusterd_conf="/etc/glusterd";
+
+    export GLUSTERFSDIR=$(dirname $GLUSTERD);
+    export VERSION_STR=$($GLUSTERD --version) 2>&1 1>/dev/null
+    export VERSION=$(echo $VERSION_STR|cut -d " " -f 2)
+
+    if [ "$VERSION" == "" ]
+    then
+        echo "Unable to determine version of $GLUSTERD"
+        exit
+    fi
+
+    LOGDIR=$(dirname $GLUSTERFSDIR)/var/log/glusterfs;
 }
 
 main ()
