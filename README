@@ -1,0 +1,65 @@
+Regression testsuite framework has been changed and a new way of executing the 
+testcases has been written. How to add new testcases or execute the existing 
+testcases is explained below.
+
+1. Adding new testcases:
+------------------------
+In the regression repository cloned 
+(git clone git://github.com/gluster/regression) there is a directory named dvm 
+which contains the directories after bugid. In each of those directories the 
+testcase pertaining to that bugid is added. Thus to add a new testcase for a 
+bug (say 2455), a directory named 2455 is created inside the dvm directory 
+and the testcase is written inside 2455 directory.
+
+Testcase pattern should be as below:
+
+         #!/bin/bash
+         source .regression_helpers
+         {
+         whole testcase goes here
+         }
+         exit $?
+
+the script is exited with the return value of the last command (which should do 
+the checking for the correct working of the functionality being checked).
+
+Set executable permission on the testcase.
+If the testcase requires mounting then it can be done using following functions.
+a) FUSE: mount_glusterfs <volume name> 
+b) NFS: mount_nfs <volume_name>
+
+2. Executing the testcase:
+--------------------------
+The repository contains a file called run.sh which should be executed with the 
+path to glusterd binary being checked as the mandatory argument. The second 
+argument to the run.sh script which is the bug id to be tested is optional. 
+If a bug id is given as the argument, then only that bugid is tested, 
+otherwise all the bugs present in the dvm directory are tested.
+
+
+./run.sh <path_to_glusterd> 2455 -> executes the testcase for the bug 2455. 
+./run.sh <path_to_glusterd> -> executes all the testcases inside dvm directory.
+./run.sh show -> shows the testcases present in dvm directory.
+
+
+See to it that glusterd is not running before running the script since 
+starting glusterd and other things are taken care by the script itself. 
+If glusterd is already running while script is being executed, 
+then the script informs the same and exits.
+
+NOTE: There is a file called regression_testcase_sample in the repository. 
+Please refer it for any doubts. 2-3 Testcases have already been added, 
+hence they can be refered too.
+
+NOTE: While creating the volumes in the testcase please create the volumes 
+with the bugid only (there is a variable call global_bug_id exported 
+by regression_helpers function) so that volume name will be unique 
+(unless the testcase itself is to try volume creation with specific name).
+
+3. Sending the patches:
+-----------------------
+git add <folder_name>
+git commit -a (Add a description to the patch which you are sending.)
+git format-patch -M -1
+
+Mail the patch to regression@dev.gluster.com, ccing it to vijay@gluster.com
