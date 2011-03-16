@@ -2,8 +2,7 @@
 
 source ./regression_helpers
 
-VOLNAME="abcdefg";
-$GLUSTERFSDIR/gluster volume delete $VOLNAME --mode=script | grep -i "exist" 2>/dev/null 1>/dev/null
+$GLUSTERFSDIR/gluster volume delete $global_bug_id --mode=script | grep -i "exist" 2>/dev/null 1>/dev/null
 exit $?;
 
 

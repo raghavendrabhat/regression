@@ -2,10 +2,9 @@
 
 source ./regression_helpers
 
-VOLNAME="vol";
-$GLUSTERFSDIR/gluster volume create $VOLNAME $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null;
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null;
 
-$GLUSTERFSDIR/gluster --mode=script volume stop $VOLNAME | grep "started state" 2>/dev/null 1>/dev/null;
+$GLUSTERFSDIR/gluster --mode=script volume stop $global_bug_id | grep "started state" 2>/dev/null 1>/dev/null;
 
 exit $?;
 

@@ -2,8 +2,7 @@
 
 source ./regression_helpers
 
-VOLNAME="vol";
-$GLUSTERFSDIR/gluster volume create $VOLNAME transport tcp,rdma $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null
+$GLUSTERFSDIR/gluster volume create $global_bug_id transport tcp,rdma $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null
 exit $?;
 
 

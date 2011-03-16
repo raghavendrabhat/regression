@@ -1,0 +1,43 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id 2>/dev/null 1>/dev/null;
+
+mount_glusterfs $global_bug_id;
+
+sleep 2;
+
+touch $FUSE_MOUNT/{1..22};
+chown 1315:1315 $FUSE_MOUNT/{1..22};
+
+mkdir $EXPORT_DIR/$global_bug_id/export2;
+
+$GLUSTERFSDIR/gluster volume add-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export2 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume rebalance $global_bug_id start 2>/dev/null 1>/dev/nullx;
+
+status=0;
+while [ $status -ne 1 ]
+do
+    status=$($GLUSTERFSDIR/gluster volume rebalance $global_bug_id status | grep "rebalance completed" | wc -l);
+    sleep 1;
+done
+
+ret=0;
+for entries in $(ls $EXPORT_DIR/$global_bug_id/export2)
+do
+    if [ $(stat --printf=%u $EXPORT_DIR/$global_bug_id/export2/$entries | grep 1315 | wc -l) -ne 1 ]; then
+        ret=22;
+        break;
+    fi
+done
+
+defrag=$(mount | grep /etc/glusterd/mount/$global_bug_id | wc -l);
+if [ $defrag -eq 1 ]; then
+    umount /etc/glusterd/mount/$global_bug_id 2>/dev/null 1>/dev/null;
+fi
+
+exit $ret;
