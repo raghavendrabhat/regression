@@ -1,0 +1,21 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null
+
+TOP_DIR=$(dirname $GLUSTERFSDIR);
+
+ls -l /etc/glusterd/.cmd_log_history 2>/dev/null 1>/dev/null;
+if [ $? -eq 0 ]; then
+   ret=22;
+else
+        ls -l $TOP_DIR/var/log/glusterfs/.cmd_log_history 2>/dev/null 1>/dev/null;
+        if [ $? -eq 0 ]; then
+           ret=0;
+        else
+           ret=22;
+        fi
+fi
+
+exit $ret;
