@@ -1,0 +1,53 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id 2>/dev/null 1>/dev/null;
+
+mount_glusterfs $FUSE_MOUNT;
+if [ $? -ne 0 ]; then
+   exit 22;
+fi
+
+sleep 2;
+touch $FUSE_MOUNT/{1..1000};
+mkdir $FUSE_MOUNT/{1001..2000};
+
+mkdir $EXPORT_DIR/$global_bug_id/export2;
+
+$GLUSTERFSDIR/gluster volume replace-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 $(hostname):$EXPORT_DIR/$global_bug_id/export2 start 2>/dev/null 1>/dev/null;
+if [ $? -ne 0 ]; then
+   exit 22;
+fi
+
+sleep 5;
+
+migrate=0;
+migrate=$GLUSTERFSDIR/gluster volume replace-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 $(hostname):$EXPORT_DIR/$global_bug_id/export2 pause 2>/dev/null 1>/dev/null;
+
+if [ $migrate -ne 0 ]; then
+     exit 22;
+fi
+
+ret=0;
+
+$GLUSTERFSDIR/gluster volume add-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export2 2>/dev/null 1>/dev/null
+if [ $? -eq 0 ]; then
+   ret=22;
+else
+        $GLUSTERFSDIR/gluster volume replace-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export1 $(hostname):$EXPORT_DIR/$global_bug_id/export2 abort 2>/dev/null 1>/dev/null;
+        if [ $? -ne 0 ]; then
+           exit 22;
+        else
+            $GLUSTERFSDIR/gluster volume add-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/export2 2>/dev/null 1>/dev/null;
+            if [ $? -ne 0 ]; then
+                ret=22;
+            else
+                ret=0;
+            fi
+        fi
+fi
+
+exit $ret;
