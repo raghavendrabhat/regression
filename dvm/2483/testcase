@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+VOLNAME="vol$global_bug_id"
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/brick1 $(hostname):$EXPORT_DIR/$global_bug_id/brick2 2>/dev/null 1>/dev/null
+$GLUSTERFSDIR/gluster volume create $VOLNAME replica 2 $(hostname):$EXPORT_DIR/$global_bug_id/brick3 $(hostname):$EXPORT_DIR/$global_bug_id/brick4 2>/dev/null 1>/dev/null
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id 2>/dev/null 1>/dev/null
+$GLUSTERFSDIR/gluster volume start $VOLNAME 2>/dev/null 1>/dev/null
+
+sleep 5
+
+showmount -e | grep $VOLNAME 2>/dev/null 1>/dev/null && showmount -e | grep -w $global_bug_id 2>/dev/null 1>/dev/null
+   exit $?;
