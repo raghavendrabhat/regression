@@ -1,0 +1,17 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+VOLNAME="vol$global_bug_id";
+
+$GLUSTERFSDIR/gluster volume create $VOLNAME $(hostname):$EXPORT_DIR/$global_bug_id/export1 $(hostname):$EXPORT_DIR/$global_bug_id/export2 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume start $VOLNAME 2>/dev/null 1>/dev/null;
+
+mount_glusterfs $VOLNAME;
+
+mknod -m 0666 $FUSE_MOUNT/testblock b 13 42 2>/dev/null 1>/dev/null;
+
+ls -l $FUSE_MOUNT/testblock | grep "13, 42" 2>/dev/null 1>/dev/null;
+
+exit $?;
