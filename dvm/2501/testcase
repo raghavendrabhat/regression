@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+VOLNAME="vol$global_bug_id";
+
+$GLUSTERFSDIR/gluster volume create $VOLNAME $(hostname):$EXPORT_DIR/$global_bug_id/export1 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume start $VOLNAME 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume set $VOLNAME mem-factor 20 2>/dev/null 1>/dev/null;
+
+$GLUSTERFSDIR/gluster volume info $VOLNAME | grep -i "nfs.mem-factor: 20" 2>/dev/null 1>/dev/null;
+
+
+exit $?;
