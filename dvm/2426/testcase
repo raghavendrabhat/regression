@@ -1,0 +1,29 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/brick1 $(hostname):$EXPORT_DIR/$global_bug_id/brick2 2>/dev/null 1>/dev/null
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id 2>/dev/null 1>/dev/null
+
+mount_glusterfs $global_bug_id 
+
+mkdir -p $FUSE_MOUNT/dir.{1..100}/foo
+
+setfattr -n trusted.author -v ms  $FUSE_MOUNT/dir.{1..100}
+
+$GLUSTERD_DIR/gluster volume add-brick $global_bug_id $(hostname):$EXPORT_DIR/$global_bug_id/brick3 $(hostname):$EXPORT_DIR/$global_bug_id/brick4 2>/dev/null 1>/dev/null
+ls -lR $FUSE_MOUNT 2>/dev/null 1>/dev/null
+
+setfattr -x trusted.author $FUSE_MOUNT/dir.{1..100} 2>/dev/null 1>/dev/null
+
+ if [ $? -ne 0 ]; then
+  exit 1;
+ fi
+temp=`getfattr -d -m '.*' $FUSE_MOUNT/dir.{1..100} | grep author | wc -l` 2>/dev/null 1>/dev/null
+
+rm -rf $FUSE_MOUNT/dir.{1..100}
+
+umount $FUSE_MOUNT
+
+exit $temp
