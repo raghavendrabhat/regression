@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+VOLNAME="volley"
+
+$GLUSTERFSDIR/gluster volume create $global_bug_id stripe 2 $(hostname):$EXPORT_DIR/$global_bug_id/brick1 $(hostname):$EXPORT_DIR/$global_bug_id/brick2 2>/dev/null 1>/dev/null
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id 2>/dev/null 1>/dev/null
+
+mount_glusterfs $global_bug_id
+
+dd if=/dev/zero of=$FUSE_MOUNT/file.x bs=128K count=1000 2>/dev/null 1>/dev/null
+
+kill -KILL `ps -aef | grep brick2 | head -n 1 | awk '{print $2}'`
+
+sleep 2
+ls $FUSE_MOUNT/file.x 2>/dev/null 1>/dev/null
+temp=$?
+
+$GLUSTERFSDIR/gluster volume start $global_bug_id force 2>/dev/null 1>/dev/null
+rm $FUSE_MOUNT/file.x 2>/dev/null 1>/dev/null
+
+umount $FUSE_MOUNT
+
+exit $temp
