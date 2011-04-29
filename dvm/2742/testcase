@@ -1,0 +1,15 @@
+#!/bin/bash
+
+source ./regression_helpers
+
+VOLNAME="vol$global_bug_id";
+
+LINE=`$GLUSTERFSDIR/gluster volume create help | grep '<tcp|rdma|tcp,rdma>' | wc -l`
+
+if [ "$LINE" -eq "1" ]; then
+    RET="0";
+else
+    RET="1";
+fi
+
+exit $RET;
