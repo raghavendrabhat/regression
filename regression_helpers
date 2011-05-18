@@ -24,6 +24,8 @@ test_kill ()
     umount -l $NFS_MOUNT 2>/dev/null 1>/dev/null;
     rm -rf /etc/glusterd/vols/*;
     rm -rf /etc/glusterd/peers/*;
+    rm -rf /etc/glusterd/nfs/*;
+    rm -rf /etc/glusterd/geo-replication/*;
 }
 
 test_cleanup ()
